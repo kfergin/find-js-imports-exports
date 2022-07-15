@@ -15,6 +15,19 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
   },
-  plugins: ['@typescript-eslint'],
-  rules: {},
+  plugins: ['@typescript-eslint', 'import', 'sort-destructure-keys'],
+  rules: {
+    'import/default': 'error',
+    'import/named': 'error',
+    'import/order': [
+      'error',
+      {
+        alphabetize: { caseInsensitive: false, order: 'asc' },
+        'newlines-between': 'always',
+      },
+    ],
+    'sort-destructure-keys/sort-destructure-keys': 'error',
+    'sort-imports': ['error', { ignoreDeclarationSort: true }],
+    'sort-keys': 'error',
+  },
 };
