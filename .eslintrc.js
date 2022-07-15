@@ -17,6 +17,7 @@ module.exports = {
   },
   plugins: ['@typescript-eslint', 'import', 'sort-destructure-keys'],
   rules: {
+    '@typescript-eslint/no-unused-vars': 'error',
     'import/default': 'error',
     'import/named': 'error',
     'import/order': [
