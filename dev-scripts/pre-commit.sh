@@ -1,8 +1,14 @@
 #!/bin/sh
 
-echo Checking typescript and prettier
+echo Checking tsc, eslint, and prettier
 
 yarn tsc
+if [ ! $? -eq 0 ];
+then
+    exit 1
+fi
+
+yarn eslint .
 if [ ! $? -eq 0 ];
 then
     exit 1

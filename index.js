@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 require('@babel/register')({
   cwd: __dirname,
   extensions: ['.js', '.ts'],
@@ -7,6 +8,7 @@ require('@babel/register')({
   ],
 });
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { findFileImports } = require('./src');
 
 module.exports = { findFileImports };
