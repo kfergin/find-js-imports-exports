@@ -1,0 +1,10 @@
+{
+  "name": "find-js-imports-exports",
+  "version": "0.0.1",
+  "description": "Finds imports and exports in your JavaScript files",
+  "main": "index.js",
+  "repository": "git@github.com:kfergin/find-js-imports-exports.git",
+  "author": "Kaleb Fergin <kaleb@kalebfergin.com",
+  "license": "MIT",
+  "private": true
+}
