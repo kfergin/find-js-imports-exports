@@ -1,3 +1,7 @@
+// TODO - learn TS:
+// I think `loc` always exists and it's optional because you opt into
+// it with a config (?)
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { dirname } from 'path';
 
 import { traverse } from 'estraverse';
@@ -32,7 +36,7 @@ export async function findFileImports({ filePath }: { filePath: string }) {
   }[] = [];
 
   traverse(ast, {
-    enter(node /*, parentNode*/) {
+    enter(node, parentNode) {
       const isImportExpressionType =
         node.type === 'ImportExpression' &&
         // just handling literal sources. not:
@@ -56,10 +60,6 @@ export async function findFileImports({ filePath }: { filePath: string }) {
         if (!node.specifiers.length) {
           // import 'somewhere';
           fileImports.push({
-            // TODO - learn TS:
-            // I think `loc` always exists and it's optional because you opt into
-            // it with a config (?)
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             lineNumber: node.loc!.start.line,
             name: '*import',
             source,
@@ -110,18 +110,54 @@ export async function findFileImports({ filePath }: { filePath: string }) {
 
         if (!source) return;
 
-        // require('somewhere')
-        // Not clarifying AssignmentExpression...yet
-        // someObj.something = require('somewhere');
-        fileImports.push({
-          // TODO - learn more about TS
-          // I think `loc` always exists and it's optional because you opt into
-          // it with a config (?)
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          lineNumber: node.loc!.start.line,
-          name: '*require',
-          source,
-        });
+        if (
+          parentNode?.type === 'MemberExpression' &&
+          parentNode.property.type === 'Identifier' &&
+          parentNode.property.name
+        ) {
+          // require('somewhere').something
+          // require('somewhere').default
+          fileImports.push({
+            lineNumber: parentNode.property.loc!.start.line,
+            name: parentNode.property.name,
+            source,
+          });
+        } else if (
+          parentNode?.type === 'VariableDeclarator' &&
+          parentNode.id.type === 'ObjectPattern'
+        ) {
+          // const { something, ... } = require('somewhere')
+          parentNode.id.properties.forEach((property) => {
+            // not supporting: const { ...other } = require('somewhere');
+            if (property.type !== 'RestElement') {
+              fileImports.push({
+                lineNumber: property.key.loc!.start.line,
+                name: (property.key as Identifier).name,
+                source,
+              });
+            }
+          });
+        } else if (
+          parentNode?.type === 'VariableDeclarator' &&
+          parentNode.id.type === 'Identifier'
+        ) {
+          // const something = require('somewhere')
+          fileImports.push({
+            identifier: parentNode.id,
+            lineNumber: parentNode.id.loc!.start.line,
+            name: '*require',
+            source,
+          });
+        } else {
+          // require('somewhere')
+          // Not clarifying AssignmentExpression...yet
+          // someObj.something = require('somewhere');
+          fileImports.push({
+            lineNumber: node.loc!.start.line,
+            name: '*require',
+            source,
+          });
+        }
       } else if (isImportExpressionType) {
         const source = resolveFrom.silent(
           dirname(filePath),
