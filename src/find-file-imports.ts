@@ -31,7 +31,7 @@ export async function findFileImports({ filePath }: { filePath: string }) {
   const fileImports: {
     identifier?: Identifier;
     lineNumber: number;
-    name: string;
+    name: '*import' | '*import()' | '*require' | 'default' | string;
     source: string;
   }[] = [];
 
