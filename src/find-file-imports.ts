@@ -126,10 +126,13 @@ export async function findFileImports({ filePath }: { filePath: string }) {
           // const { something, ... } = require('somewhere')
           parentNode.id.properties.forEach((property) => {
             // not supporting: const { ...other } = require('somewhere');
-            if (property.type !== 'RestElement') {
+            if (
+              property.type !== 'RestElement' &&
+              property.key.type === 'Identifier'
+            ) {
               fileImports.push({
                 lineNumber: property.key.loc!.start.line,
-                name: (property.key as Identifier).name,
+                name: property.key.name,
                 source,
               });
             }
