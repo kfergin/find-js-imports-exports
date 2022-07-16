@@ -3,6 +3,7 @@ import { dirname } from 'path';
 import { traverse } from 'estraverse';
 import {
   ExportNamedDeclaration,
+  Identifier,
   ImportDeclaration,
   Literal,
   Node,
@@ -24,6 +25,7 @@ export async function findFileImports({ filePath }: { filePath: string }) {
   const ast = await getAstFromPath(filePath);
 
   const fileImports: {
+    identifier?: Identifier;
     lineNumber: number;
     name: string;
     source: string;
@@ -51,16 +53,55 @@ export async function findFileImports({ filePath }: { filePath: string }) {
 
         if (!source) return;
 
-        // import 'somewhere';
-        fileImports.push({
-          // TODO - learn TS:
-          // I think `loc` always exists and it's optional because you opt into
-          // it with a config (?)
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          lineNumber: node.loc!.start.line,
-          name: '*import',
-          source,
-        });
+        if (!node.specifiers.length) {
+          // import 'somewhere';
+          fileImports.push({
+            // TODO - learn TS:
+            // I think `loc` always exists and it's optional because you opt into
+            // it with a config (?)
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            lineNumber: node.loc!.start.line,
+            name: '*import',
+            source,
+          });
+        } else {
+          node.specifiers.forEach((specifier) => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const lineNumber = specifier.loc!.start.line;
+
+            if (specifier.type === 'ImportDefaultSpecifier') {
+              // import something from 'somewhere';
+              fileImports.push({
+                lineNumber,
+                name: 'default',
+                source,
+              });
+            } else if (specifier.type === 'ImportNamespaceSpecifier') {
+              // import * as something from 'somewhere';
+              fileImports.push({
+                identifier: specifier.local,
+                lineNumber,
+                name: '*import',
+                source,
+              });
+            } else if (specifier.type === 'ImportSpecifier') {
+              // import { something as other } from 'somewhere';
+              // import { default as other } from 'somewhere';
+              fileImports.push({
+                lineNumber,
+                name: specifier.imported.name,
+                source,
+              });
+            } else if (specifier.type === 'ExportSpecifier' && node.source) {
+              // export { something as other } from 'somewhere';
+              fileImports.push({
+                lineNumber,
+                name: specifier.local.name,
+                source,
+              });
+            }
+          });
+        }
       } else if (isRequireNodeType) {
         const source = resolveFrom.silent(
           dirname(filePath),
