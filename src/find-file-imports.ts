@@ -38,12 +38,6 @@ export async function findFileImports({ filePath }: { filePath: string }) {
 
   traverse(ast, {
     enter(node, parentNode) {
-      const isImportExpressionType =
-        node.type === 'ImportExpression' &&
-        // just handling literal sources. not:
-        // import(`./path/interpolation/${chaos}`)
-        // import('./path/interpolation/' + chaos)
-        node.source.type === 'Literal';
       const isRequireNodeType =
         node.type === 'CallExpression' &&
         node.callee.type === 'Identifier' &&
@@ -158,11 +152,15 @@ export async function findFileImports({ filePath }: { filePath: string }) {
             source,
           });
         }
-      } else if (isImportExpressionType) {
-        const source = resolveFrom.silent(
-          dirname(filePath),
-          (node.source as Literal).value as string
-        );
+      } else if (
+        node.type === 'ImportExpression' &&
+        // just handling literal sources. not:
+        // import(`./path/interpolation/${chaos}`)
+        // import('./path/interpolation/' + chaos)
+        node.source.type === 'Literal' &&
+        typeof node.source.value === 'string'
+      ) {
+        const source = resolveFrom.silent(dirname(filePath), node.source.value);
 
         if (!source) return;
 
