@@ -10,7 +10,6 @@ import {
   ExportNamedDeclaration,
   Identifier,
   ImportDeclaration,
-  Literal,
   Node,
 } from 'estree';
 import resolveFrom from 'resolve-from';
@@ -38,11 +37,6 @@ export async function findFileImports({ filePath }: { filePath: string }) {
 
   traverse(ast, {
     enter(node, parentNode) {
-      const isRequireNodeType =
-        node.type === 'CallExpression' &&
-        node.callee.type === 'Identifier' &&
-        node.callee.name === 'require';
-
       if (isImportNodeType(node)) {
         const source =
           // only these exports have a `source`:
@@ -96,10 +90,19 @@ export async function findFileImports({ filePath }: { filePath: string }) {
             }
           });
         }
-      } else if (isRequireNodeType) {
+      } else if (
+        node.type === 'CallExpression' &&
+        node.callee.type === 'Identifier' &&
+        node.callee.name === 'require' &&
+        // just handling literal sources. not:
+        // require(`./path/interpolation/${chaos}`)
+        // require('./path/interpolation/' + chaos)
+        node.arguments[0].type === 'Literal' &&
+        typeof node.arguments[0].value === 'string'
+      ) {
         const source = resolveFrom.silent(
           dirname(filePath),
-          (node.arguments[0] as Literal).value as string
+          node.arguments[0].value
         );
 
         if (!source) return;
