@@ -238,7 +238,7 @@ export async function findFileImports(filePath: string) {
     });
   }
 
-  return fileImports.map((fileImport) => ({
+  return fileImports.map(({ referenceIdentifiers, ...fileImport }) => ({
     ...fileImport,
     destination: filePath,
   }));
