@@ -5,6 +5,7 @@
 
 import { dirname } from 'path';
 
+import { Scope, analyze } from 'eslint-scope';
 import { traverse } from 'estraverse';
 import {
   ExportNamedDeclaration,
@@ -28,10 +29,19 @@ function isImportNodeType(
 export async function findFileImports({ filePath }: { filePath: string }) {
   const ast = await getAstFromPath(filePath);
 
+  const globalScope = analyze(ast, {
+    ecmaVersion: 6,
+    sourceType: 'module',
+  }).acquire(ast);
+  if (globalScope === null) {
+    throw Error(`Error getting scope for ${filePath}!`);
+  }
+  const allScopes: [Scope] = [globalScope];
+
   const fileImports: {
-    identifier?: Identifier;
     lineNumber: number;
     name: '*import' | '*import()' | '*require' | 'default' | string;
+    referenceIdentifiers?: Identifier[];
     source: string;
   }[] = [];
 
@@ -67,9 +77,12 @@ export async function findFileImports({ filePath }: { filePath: string }) {
             } else if (specifier.type === 'ImportNamespaceSpecifier') {
               // import * as something from 'somewhere';
               fileImports.push({
-                identifier: specifier.local,
                 lineNumber,
                 name: '*import',
+                referenceIdentifiers: findOtherReferences(
+                  specifier.local,
+                  allScopes
+                ),
                 source,
               });
             } else if (specifier.type === 'ImportSpecifier') {
@@ -143,9 +156,9 @@ export async function findFileImports({ filePath }: { filePath: string }) {
         ) {
           // const something = require('somewhere')
           fileImports.push({
-            identifier: parentNode.id,
             lineNumber: parentNode.id.loc!.start.line,
             name: '*require',
+            referenceIdentifiers: findOtherReferences(parentNode.id, allScopes),
             source,
           });
         } else {
@@ -182,8 +195,75 @@ export async function findFileImports({ filePath }: { filePath: string }) {
     fallback: 'iteration',
   });
 
+  const referencesToFindMap: Map<Identifier, string> = new Map();
+  for (const { referenceIdentifiers, source } of fileImports) {
+    if (referenceIdentifiers?.length) {
+      referenceIdentifiers.forEach((identifier) =>
+        referencesToFindMap.set(identifier, source)
+      );
+    }
+  }
+
+  if (referencesToFindMap.size) {
+    // import * as something from 'somewhere';
+    // looking for `something.<some-propery>`
+    traverse(ast, {
+      enter: function (node, parent) {
+        if (node.type !== 'Identifier' || parent?.type !== 'MemberExpression') {
+          return;
+        }
+
+        const source = referencesToFindMap.get(node);
+
+        const { property } = parent;
+        let name = '';
+        switch (property.type) {
+          case 'Identifier':
+            name = property.name;
+            break;
+          case 'Literal':
+            name = property.value as string;
+            break;
+        }
+
+        if (source && name) {
+          fileImports.push({
+            lineNumber: parent.property.loc!.start.line,
+            name,
+            source,
+          });
+        }
+      },
+      fallback: 'iteration',
+    });
+  }
+
   return fileImports.map((fileImport) => ({
     ...fileImport,
     destination: filePath,
   }));
+}
+
+function findOtherReferences(
+  identifier: Identifier,
+  scopes: Scope[]
+): Identifier[] {
+  for (const scope of scopes) {
+    const sourceVariable = scope.set.get(identifier.name);
+    if (sourceVariable?.defs[0]?.name === identifier) {
+      return sourceVariable.references
+        .filter((reference) => reference.identifier !== identifier)
+        .map(({ identifier }) => identifier);
+    }
+
+    const childScopeReferences = findOtherReferences(
+      identifier,
+      scope.childScopes
+    );
+    if (childScopeReferences.length) {
+      return childScopeReferences;
+    }
+  }
+
+  return [];
 }
