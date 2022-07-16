@@ -2,6 +2,7 @@
 // I think `loc` always exists and it's optional because you opt into
 // it with a config (?)
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 import { dirname } from 'path';
 
 import { traverse } from 'estraverse';
@@ -66,7 +67,6 @@ export async function findFileImports({ filePath }: { filePath: string }) {
           });
         } else {
           node.specifiers.forEach((specifier) => {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const lineNumber = specifier.loc!.start.line;
 
             if (specifier.type === 'ImportDefaultSpecifier') {
@@ -169,10 +169,6 @@ export async function findFileImports({ filePath }: { filePath: string }) {
         // const something = import('somewhere')
         // (not figuring out specifics on what `something` resolves to)
         fileImports.push({
-          // TODO - learn more about TS
-          // I think `loc` always exists and it's optional because you opt into
-          // it with a config (?)
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           lineNumber: node.loc!.start.line,
           name: '*import()',
           source,
