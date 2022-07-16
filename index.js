@@ -9,6 +9,6 @@ require('@babel/register')({
 });
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { findFileImports } = require('./src');
+const { fileSystemForEach, findFileImports } = require('./src');
 
-module.exports = { findFileImports };
+module.exports = { fileSystemForEach, findFileImports };
