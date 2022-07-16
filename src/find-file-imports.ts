@@ -26,7 +26,7 @@ function isImportNodeType(
   return ['ImportDeclaration', 'ExportNamedDeclaration'].includes(node.type);
 }
 
-export async function findFileImports({ filePath }: { filePath: string }) {
+export async function findFileImports(filePath: string) {
   const ast = await getAstFromPath(filePath);
 
   const globalScope = analyze(ast, {
