@@ -42,11 +42,7 @@ export async function findFileImports({ filePath }: { filePath: string }) {
         node.callee.type === 'Identifier' &&
         node.callee.name === 'require';
 
-      if (
-        isImportNodeType(node)
-        // node.type === 'ImportDeclaration' ||
-        // node.type === 'ExportNamedDeclaration'
-      ) {
+      if (isImportNodeType(node)) {
         const source =
           // only these exports have a `source`:
           // `export { something } from 'somewhere';`
