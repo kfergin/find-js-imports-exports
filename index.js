@@ -10,9 +10,15 @@ require('@babel/register')({
 
 const {
   fileSystemForEach,
+  findFileExports,
   findFileImports,
   stderrWritePath,
   // eslint-disable-next-line @typescript-eslint/no-var-requires
 } = require('./src');
 
-module.exports = { fileSystemForEach, findFileImports, stderrWritePath };
+module.exports = {
+  fileSystemForEach,
+  findFileExports,
+  findFileImports,
+  stderrWritePath,
+};
