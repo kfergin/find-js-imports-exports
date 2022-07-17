@@ -25,6 +25,18 @@ export async function findFileExports(filePath: string) {
           name: 'default',
           source: filePath,
         });
+      } else if (node.type === 'ExportNamedDeclaration') {
+        if (!node.declaration) {
+          node.specifiers.forEach((specifier) => {
+            // export { something as another } from 'somewhere';
+            // export { something as another };
+            fileExports.push({
+              lineNumber: specifier.exported.loc!.start.line,
+              name: specifier.exported.name,
+              source: filePath,
+            });
+          });
+        }
       }
     },
     fallback: 'iteration',
