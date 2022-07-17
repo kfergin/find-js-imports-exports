@@ -50,6 +50,32 @@ export async function findFileExports(filePath: string) {
               name: declaration.id!.name,
               source: filePath,
             });
+          } else {
+            // declaration.type: 'VariableDeclaration'
+            declaration.declarations
+              .flatMap((dec) => {
+                if (dec.id.type === 'ObjectPattern') {
+                  // export const { some: other, another, ...why } = anObject;
+                  return dec.id.properties.map((prop) =>
+                    prop.type === 'RestElement' ? prop.argument : prop.value
+                  );
+                } else {
+                  // export const something = 'a value';
+                  return dec.id;
+                }
+              })
+              .forEach((identifier) => {
+                if (identifier.type !== 'Identifier') {
+                  throw Error(
+                    "A node that isn't an identifier snuck through. The above flatMap needs to handle it."
+                  );
+                }
+                fileExports.push({
+                  lineNumber: identifier.loc!.start.line,
+                  name: identifier.name,
+                  source: filePath,
+                });
+              });
           }
         }
       }
