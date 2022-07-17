@@ -8,7 +8,11 @@ require('@babel/register')({
   ],
 });
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { fileSystemForEach, findFileImports } = require('./src');
+const {
+  fileSystemForEach,
+  findFileImports,
+  stderrWritePath,
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+} = require('./src');
 
-module.exports = { fileSystemForEach, findFileImports };
+module.exports = { fileSystemForEach, findFileImports, stderrWritePath };
