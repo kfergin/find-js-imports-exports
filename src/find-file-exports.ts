@@ -36,6 +36,21 @@ export async function findFileExports(filePath: string) {
               source: filePath,
             });
           });
+        } else {
+          const { declaration } = node;
+          if (
+            declaration.type === 'ClassDeclaration' ||
+            declaration.type === 'FunctionDeclaration'
+          ) {
+            // export function something() {}
+            // export class something {}
+            fileExports.push({
+              // declaration.id can only be null with ExportDefaultDeclaration
+              lineNumber: declaration.id!.loc!.start.line,
+              name: declaration.id!.name,
+              source: filePath,
+            });
+          }
         }
       }
     },
