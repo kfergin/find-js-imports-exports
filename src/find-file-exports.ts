@@ -5,17 +5,30 @@
 
 import { dirname } from 'path';
 
+import { Scope, analyze } from 'eslint-scope';
 import { traverse } from 'estraverse';
+import { Identifier } from 'estree';
 import resolveFrom from 'resolve-from';
 
 import { getAstFromPath } from './get-ast-from-path';
+import { findVariableOtherReferences } from './other-references';
 
 export async function findFileExports(filePath: string) {
   const ast = await getAstFromPath(filePath);
 
+  const globalScope = analyze(ast, {
+    ecmaVersion: 6,
+    sourceType: 'module',
+  }).acquire(ast);
+  if (globalScope === null) {
+    throw Error(`Error getting scope for ${filePath}!`);
+  }
+  const allScopes: [Scope] = [globalScope];
+
   const fileExports: {
     lineNumber: number;
     name: string;
+    numReferencesInSource: number | null;
     source: string;
   }[] = [];
 
@@ -30,6 +43,7 @@ export async function findFileExports(filePath: string) {
         fileExports.push({
           lineNumber: node.loc!.start.line,
           name: 'default',
+          numReferencesInSource: null,
           source: filePath,
         });
       } else if (node.type === 'ExportNamedDeclaration') {
@@ -40,6 +54,7 @@ export async function findFileExports(filePath: string) {
             fileExports.push({
               lineNumber: specifier.exported.loc!.start.line,
               name: specifier.exported.name,
+              numReferencesInSource: null,
               source: filePath,
             });
           });
@@ -55,6 +70,10 @@ export async function findFileExports(filePath: string) {
               // declaration.id can only be null with ExportDefaultDeclaration
               lineNumber: declaration.id!.loc!.start.line,
               name: declaration.id!.name,
+              numReferencesInSource: findVariableOtherReferences(
+                declaration.id as Identifier,
+                allScopes
+              ).length,
               source: filePath,
             });
           } else {
@@ -80,6 +99,7 @@ export async function findFileExports(filePath: string) {
                 fileExports.push({
                   lineNumber: identifier.loc!.start.line,
                   name: identifier.name,
+                  numReferencesInSource: null,
                   source: filePath,
                 });
               });
@@ -91,6 +111,7 @@ export async function findFileExports(filePath: string) {
           fileExports.push({
             lineNumber: node.exported.loc!.start.line,
             name: node.exported.name,
+            numReferencesInSource: null,
             source: filePath,
           });
         } else {

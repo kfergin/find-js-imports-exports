@@ -16,6 +16,7 @@ import {
 import resolveFrom from 'resolve-from';
 
 import { getAstFromPath } from './get-ast-from-path';
+import { findVariableOtherReferences } from './other-references';
 
 // this is a type predicate.
 // TODO - learn TS:
@@ -79,7 +80,7 @@ export async function findFileImports(filePath: string) {
               fileImports.push({
                 lineNumber,
                 name: '*import',
-                referenceIdentifiers: findOtherReferences(
+                referenceIdentifiers: findVariableOtherReferences(
                   specifier.local,
                   allScopes
                 ),
@@ -158,7 +159,10 @@ export async function findFileImports(filePath: string) {
           fileImports.push({
             lineNumber: parentNode.id.loc!.start.line,
             name: '*require',
-            referenceIdentifiers: findOtherReferences(parentNode.id, allScopes),
+            referenceIdentifiers: findVariableOtherReferences(
+              parentNode.id,
+              allScopes
+            ),
             source,
           });
         } else {
@@ -242,28 +246,4 @@ export async function findFileImports(filePath: string) {
     ...fileImport,
     destination: filePath,
   }));
-}
-
-function findOtherReferences(
-  identifier: Identifier,
-  scopes: Scope[]
-): Identifier[] {
-  for (const scope of scopes) {
-    const sourceVariable = scope.set.get(identifier.name);
-    if (sourceVariable?.defs[0]?.name === identifier) {
-      return sourceVariable.references
-        .filter((reference) => reference.identifier !== identifier)
-        .map(({ identifier }) => identifier);
-    }
-
-    const childScopeReferences = findOtherReferences(
-      identifier,
-      scope.childScopes
-    );
-    if (childScopeReferences.length) {
-      return childScopeReferences;
-    }
-  }
-
-  return [];
 }
