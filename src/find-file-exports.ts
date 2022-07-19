@@ -13,7 +13,7 @@ import resolveFrom from 'resolve-from';
 import { getAstFromPath } from './get-ast-from-path';
 import {
   findOtherReferencesFromReference,
-  findVariableOtherReferences,
+  findOtherReferencesFromVariable,
 } from './other-references';
 
 export async function findFileExports(filePath: string) {
@@ -76,7 +76,7 @@ export async function findFileExports(filePath: string) {
               // declaration.id can only be null with ExportDefaultDeclaration
               lineNumber: declaration.id!.loc!.start.line,
               name: declaration.id!.name,
-              numReferencesInSource: findVariableOtherReferences(
+              numReferencesInSource: findOtherReferencesFromVariable(
                 declaration.id as Identifier,
                 allScopes
               ).length,
@@ -105,7 +105,7 @@ export async function findFileExports(filePath: string) {
                 fileExports.push({
                   lineNumber: identifier.loc!.start.line,
                   name: identifier.name,
-                  numReferencesInSource: findVariableOtherReferences(
+                  numReferencesInSource: findOtherReferencesFromVariable(
                     identifier,
                     allScopes
                   ).length,

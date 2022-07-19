@@ -16,7 +16,7 @@ import {
 import resolveFrom from 'resolve-from';
 
 import { getAstFromPath } from './get-ast-from-path';
-import { findVariableOtherReferences } from './other-references';
+import { findOtherReferencesFromVariable } from './other-references';
 
 // this is a type predicate.
 // TODO - learn TS:
@@ -80,7 +80,7 @@ export async function findFileImports(filePath: string) {
               fileImports.push({
                 lineNumber,
                 name: '*import',
-                referenceIdentifiers: findVariableOtherReferences(
+                referenceIdentifiers: findOtherReferencesFromVariable(
                   specifier.local,
                   allScopes
                 ),
@@ -159,7 +159,7 @@ export async function findFileImports(filePath: string) {
           fileImports.push({
             lineNumber: parentNode.id.loc!.start.line,
             name: '*require',
-            referenceIdentifiers: findVariableOtherReferences(
+            referenceIdentifiers: findOtherReferencesFromVariable(
               parentNode.id,
               allScopes
             ),

@@ -1,7 +1,7 @@
 import { Scope, Variable } from 'eslint-scope';
 import { Identifier } from 'estree';
 
-export function findVariableOtherReferences(
+export function findOtherReferencesFromVariable(
   identifier: Identifier,
   scopes: Scope[]
 ): Identifier[] {
@@ -13,7 +13,7 @@ export function findVariableOtherReferences(
         .map(({ identifier }) => identifier);
     }
 
-    const childScopeReferences = findVariableOtherReferences(
+    const childScopeReferences = findOtherReferencesFromVariable(
       identifier,
       scope.childScopes
     );
