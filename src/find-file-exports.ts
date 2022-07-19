@@ -120,7 +120,7 @@ export async function findFileExports(filePath: string) {
           fileExports.push({
             lineNumber: node.exported.loc!.start.line,
             name: node.exported.name,
-            numReferencesInSource: null,
+            numReferencesInSource: 0,
             source: filePath,
           });
         } else {
