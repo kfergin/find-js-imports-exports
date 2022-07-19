@@ -11,7 +11,10 @@ import { Identifier } from 'estree';
 import resolveFrom from 'resolve-from';
 
 import { getAstFromPath } from './get-ast-from-path';
-import { findVariableOtherReferences } from './other-references';
+import {
+  findOtherReferencesFromReference,
+  findVariableOtherReferences,
+} from './other-references';
 
 export async function findFileExports(filePath: string) {
   const ast = await getAstFromPath(filePath);
@@ -54,7 +57,10 @@ export async function findFileExports(filePath: string) {
             fileExports.push({
               lineNumber: specifier.exported.loc!.start.line,
               name: specifier.exported.name,
-              numReferencesInSource: null,
+              numReferencesInSource: node.source
+                ? 0
+                : findOtherReferencesFromReference(specifier.local, allScopes)
+                    .length,
               source: filePath,
             });
           });
