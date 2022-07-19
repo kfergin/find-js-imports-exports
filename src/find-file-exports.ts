@@ -99,7 +99,10 @@ export async function findFileExports(filePath: string) {
                 fileExports.push({
                   lineNumber: identifier.loc!.start.line,
                   name: identifier.name,
-                  numReferencesInSource: null,
+                  numReferencesInSource: findVariableOtherReferences(
+                    identifier,
+                    allScopes
+                  ).length,
                   source: filePath,
                 });
               });
