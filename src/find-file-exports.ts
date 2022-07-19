@@ -29,6 +29,7 @@ export async function findFileExports(filePath: string) {
   const allScopes: [Scope] = [globalScope];
 
   const fileExports: {
+    isReExport: boolean;
     lineNumber: number;
     name: string;
     numReferencesInSource: number | null;
@@ -44,6 +45,7 @@ export async function findFileExports(filePath: string) {
       if (node.type === 'ExportDefaultDeclaration') {
         // export default function() {}
         fileExports.push({
+          isReExport: false,
           lineNumber: node.loc!.start.line,
           name: 'default',
           numReferencesInSource: null,
@@ -55,6 +57,7 @@ export async function findFileExports(filePath: string) {
             // export { something as another } from 'somewhere';
             // export { something as another };
             fileExports.push({
+              isReExport: false,
               lineNumber: specifier.exported.loc!.start.line,
               name: specifier.exported.name,
               numReferencesInSource: node.source
@@ -73,6 +76,7 @@ export async function findFileExports(filePath: string) {
             // export function something() {}
             // export class something {}
             fileExports.push({
+              isReExport: false,
               // declaration.id can only be null with ExportDefaultDeclaration
               lineNumber: declaration.id!.loc!.start.line,
               name: declaration.id!.name,
@@ -103,6 +107,7 @@ export async function findFileExports(filePath: string) {
                   );
                 }
                 fileExports.push({
+                  isReExport: false,
                   lineNumber: identifier.loc!.start.line,
                   name: identifier.name,
                   numReferencesInSource: findOtherReferencesFromVariable(
@@ -118,6 +123,7 @@ export async function findFileExports(filePath: string) {
         if (node.exported) {
           // export * as something from 'somewhere';
           fileExports.push({
+            isReExport: false,
             lineNumber: node.exported.loc!.start.line,
             name: node.exported.name,
             numReferencesInSource: 0,
@@ -143,7 +149,12 @@ export async function findFileExports(filePath: string) {
     // `export *` doesn't actually include that export. I'm keeping this as is
     // because you shouldn't rely on this behavior, which may change in a
     // future spec.
-    fileExports.push(...(await findFileExports(exportStarPath)));
+    fileExports.push(
+      ...(await findFileExports(exportStarPath).then((fileExport) => ({
+        ...fileExport,
+        isReExport: true,
+      })))
+    );
   }
 
   return fileExports;
