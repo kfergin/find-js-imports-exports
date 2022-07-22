@@ -8,6 +8,7 @@ import { dirname } from 'path';
 import { Scope, analyze } from 'eslint-scope';
 import { traverse } from 'estraverse';
 import {
+  ExportAllDeclaration,
   ExportNamedDeclaration,
   Identifier,
   ImportDeclaration,
@@ -23,8 +24,12 @@ import { findOtherReferencesFromVariable } from './other-references';
 // Do type predicates have to be functions?
 function isImportNodeType(
   node: Node
-): node is ImportDeclaration | ExportNamedDeclaration {
-  return ['ImportDeclaration', 'ExportNamedDeclaration'].includes(node.type);
+): node is ImportDeclaration | ExportAllDeclaration | ExportNamedDeclaration {
+  return [
+    'ImportDeclaration',
+    'ExportAllDeclaration',
+    'ExportNamedDeclaration',
+  ].includes(node.type);
 }
 
 export async function findFileImports(filePath: string) {
@@ -57,8 +62,9 @@ export async function findFileImports(filePath: string) {
 
         if (!source) return;
 
-        if (!node.specifiers.length) {
+        if (node.type === 'ExportAllDeclaration' || !node.specifiers.length) {
           // import 'somewhere';
+          // export * from 'somewhere';
           fileImports.push({
             lineNumber: node.loc!.start.line,
             name: '*import',
