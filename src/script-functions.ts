@@ -1,5 +1,6 @@
 import resolveFrom from 'resolve-from';
 
+import { config } from './config-object';
 import { fileSystemForEach } from './file-system-for-each';
 import { findFileImports } from './find-file-imports';
 import {
@@ -72,6 +73,6 @@ export async function findImportsScript() {
         );
       });
     },
-    { pathRegexIgnores }
+    { pathRegexIgnores: [...config.pathRegexIgnores, ...pathRegexIgnores] }
   );
 }
