@@ -1,6 +1,7 @@
 require('./transpile-ts');
 
 const {
+  config,
   fileSystemForEach,
   findFileExports,
   findFileImports,
@@ -9,6 +10,7 @@ const {
 } = require('./src');
 
 module.exports = {
+  config,
   fileSystemForEach,
   findFileExports,
   findFileImports,
