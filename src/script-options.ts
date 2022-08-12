@@ -1,3 +1,5 @@
+// important to tell TS to infer the Name type as 'help' and not string.
+// `name: 'help' as const,` would also work
 export type ScriptOption<Name extends string, Value> = {
   defaultValue: Value;
   documentation: string;
@@ -25,8 +27,18 @@ export type ScriptOptionTypesToDict<OptionTypes> = UnionToIntersection<
   ScriptOptionToDict<Flatten<OptionTypes>>
 >;
 
-// important to tell TS to infer the Name type as 'help' and not string.
-// `name: 'help' as const,` would also work
+export const exportNameScriptOption: ScriptOption<'exportName', string> = {
+  defaultValue: '*',
+  documentation: `--export-name, -n
+        Name of an export. '*' matches any export, which is the default.
+        e.g. \`find-imports-script -n someVar\``,
+  flags: ['--export-name', '-n'],
+  getValue(arg, flagIdx, sourceArgs) {
+    return sourceArgs[flagIdx + 1];
+  },
+  name: 'exportName',
+};
+
 export const helpScriptOption: ScriptOption<'help', boolean> = {
   defaultValue: false,
   documentation: `--help, -h
@@ -48,7 +60,7 @@ export const pathRegexIgnoresScriptOption: ScriptOption<
         matches the path. Should be in the regex-literal form and
         space-delimited. The regex body and flags will be passed to the RegExp
         constructor.
-        e.g. \`find-imports-script someVar './some-file' -i /.test.js$/i /.*flow.*/\``,
+        e.g. \`find-imports-script -i /.test.js$/i /.*flow.*/\``,
   flags: ['--path-regex-ignores', '-i'],
   getValue(arg, flagIdx, sourceArgs) {
     const regexes = [];
@@ -72,6 +84,19 @@ export const pathRegexIgnoresScriptOption: ScriptOption<
     return regexes;
   },
   name: 'pathRegexIgnores',
+};
+
+export const sourcePathScriptOption: ScriptOption<'sourcePath', string> = {
+  defaultValue: '*',
+  documentation: `--source-path, -p
+        Path of an export's source file. Can be relative or absolute.
+        '*' matches any path, which is the default.
+        e.g. \`find-imports-script -p ./some/path/file.js\``,
+  flags: ['--source-path', '-p'],
+  getValue(arg, flagIdx, sourceArgs) {
+    return sourceArgs[flagIdx + 1];
+  },
+  name: 'sourcePath',
 };
 
 export function makeGetScriptOptions(
