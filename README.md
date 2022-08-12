@@ -38,7 +38,8 @@ in that module.
 There are some scripts that come with this package, indended to handle common
 use cases of the main exports. For example, `./executables/find-imports.js`. To
 wire them up, you need to update the `bin` field in `package.json` and then run
-`yarn link` to make the command globally available. If you've already run `yarn link`, first `yarn unlink`, thne `yarn link` again.
+`yarn link` to make the command globally available. If you've already run `yarn link`,
+first `yarn unlink`, then `yarn link` again.
 
 ```json
   "bin": {
