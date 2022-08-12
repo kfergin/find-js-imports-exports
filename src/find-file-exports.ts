@@ -150,10 +150,12 @@ export async function findFileExports(filePath: string) {
     // because you shouldn't rely on this behavior, which may change in a
     // future spec.
     fileExports.push(
-      ...(await findFileExports(exportStarPath).then((fileExport) => ({
-        ...fileExport,
-        isReExport: true,
-      })))
+      ...(await findFileExports(exportStarPath).then((fileExports) =>
+        fileExports.map((fileExport) => ({
+          ...fileExport,
+          isReExport: true,
+        }))
+      ))
     );
   }
 
