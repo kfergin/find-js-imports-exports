@@ -55,30 +55,52 @@ the best resource.
 ```
 $ find-imports-script -h
 
-    find-imports-script [import-name] [import-path] [flags]
-
-    import-name
-      - default import: 'default'
-      - namespace import: '*'
-      - named import: '<name-of-import>'
-
-    import-path
-      Can be absolute or relative
+    find-imports-script [flags]
 
     Options:
+      --export-name, -n
+        Name of an export. '*' matches any export, which is the default.
+        e.g. `find-imports-script -n someVar`
+
+      --source-path, -p
+        Path of an export's source file. Can be relative or absolute.
+        '*' matches any path, which is the default.
+        e.g. `find-imports-script -p ./some/path/file.js`
+
       --path-regex-ignores, -i
         Ignores a directory or file if one of the provided regex patterns
         matches the path. Should be in the regex-literal form and
         space-delimited. The regex body and flags will be passed to the RegExp
         constructor.
-        e.g. `find-imports-script someVar './some-file' -i /.test.js$/i /.*flow.*/`
+        e.g. `find-imports-script -i /.test.js$/i /.*flow.*/`
 
       --help, -h
         Print out help documentation.
 
 $ find-exports-script -h
 
-  TODO
+    find-exports-script [flags]
+
+    Options:
+      --export-name, -n
+        Name of an export. '*' matches any export, which is the default.
+        e.g. `find-imports-script -n someVar`
+
+      --source-path, -p
+        Path of an export's source file. Can be relative or absolute.
+        '*' matches any path, which is the default.
+        e.g. `find-imports-script -p ./some/path/file.js`
+
+      --path-regex-ignores, -i
+        Ignores a directory or file if one of the provided regex patterns
+        matches the path. Should be in the regex-literal form and
+        space-delimited. The regex body and flags will be passed to the RegExp
+        constructor.
+        e.g. `find-imports-script -i /.test.js$/i /.*flow.*/`
+
+      --help, -h
+        Print out help documentation.
+
 ```
 
 ## Config file
