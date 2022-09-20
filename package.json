@@ -19,12 +19,12 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "@babel/core": "^7.18.6",
-    "@babel/preset-env": "^7.18.6",
+    "@babel/core": "^7.19.1",
+    "@babel/preset-env": "^7.19.1",
     "@babel/preset-flow": "^7.18.6",
     "@babel/preset-react": "^7.18.6",
     "@babel/preset-typescript": "^7.18.6",
-    "@babel/register": "^7.18.6",
+    "@babel/register": "^7.18.9",
     "@types/babel__core": "^7.1.19",
     "@types/eslint-scope": "^3.7.4",
     "@types/estraverse": "^5.1.1",
